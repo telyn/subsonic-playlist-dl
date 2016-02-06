@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 if [ $# -ne 3 ]; then
     echo "usage: export-playlists <host> <username> <password>"
 fi
