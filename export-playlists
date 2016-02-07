@@ -12,7 +12,7 @@ get () {
     local name=$2
     local xml=$(curl "$host/rest/getPlaylist.view?u=$username&p=$pass&v=1.12.0&c=subsonic-playlist-export&id=$id")
     
-    local tracks=$(echo "$xml" | xpath -e "//entry" -e "string(@path)" 2>&1 | grep "Not a nodeset" | sed 's/^Not a nodeset: //')
+    local tracks=$(echo "$xml" | xpath -e "//entry" -e "concat(string(@path), concat(' #', string(@id)))" 2>&1 | grep "Not a nodeset" | sed 's/^Not a nodeset: //')
 
     echo "$tracks" | sed -e 's!^!/music/!' | tee ${name}.m3u8
 }
