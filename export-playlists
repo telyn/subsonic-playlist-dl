@@ -1,20 +1,32 @@
 #!/bin/bash
 if [ $# -ne 3 ]; then
-    echo "usage: export-playlists <host> <username> <password>"
+    if [ -z "$host" ] || [ -z "$username" ] || [ -z "$pass" ]; then
+	echo "usage: export-playlists <host> <username> <password>"
+	echo ""
+	echo "or set the host, username, and pass environment variables."
+	exit 1
+    fi
 fi
 
-host=$1
-username=$2
-pass=$3
+if ! which xpath; then
+    echo "xpath command not found - please install libxml-xpath-perl"
+    exit 1
+fi
+
+if [ $# -eq 3 ]; then
+    host=$1
+    username=$2
+    pass=$3
+fi
 
 get () {
     local id=$1
     local name=$2
     local xml=$(curl "$host/rest/getPlaylist.view?u=$username&p=$pass&v=1.12.0&c=subsonic-playlist-export&id=$id")
-    
+
     local tracks=$(echo "$xml" | xpath -e "//entry" -e "concat(string(@path), concat(' #', string(@id)))" 2>&1 | grep "Not a nodeset" | sed 's/^Not a nodeset: //')
 
-    echo "$tracks" | sed -e 's!^!/music/!' | tee ${name}.m3u8
+    echo "$tracks" | sed -e 's!^!/music/!' | tee "${name}.m3u8"
 }
 
 xml=$(curl "$host/rest/getPlaylists.view?u=$username&p=$pass&v=1.12.0&c=subsonic-playlist-export")
@@ -25,6 +37,5 @@ for p in $playlists; do
     id=$(echo $p | awk -F':' '{print $1}')
     name=$(echo $p | awk -F':' '{print $2}')
     echo "Exporting $name"
-    get $id $name
+    get "$id" "$name"
 done
-
